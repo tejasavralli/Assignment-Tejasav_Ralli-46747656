@@ -1,0 +1,162 @@
+---
+title: "Untitled"
+author: "Tejasav Ralli"
+date: "2023-10-20"
+output: pdf_document
+---
+
+## Question 1
+```{r}
+# Load the traffic data from the CSV file
+traffic <- read.csv("traffic.csv", header = TRUE)
+
+# Display the first few rows of the 'traffic' dataset
+head(traffic)
+```
+
+### a)
+```{r}
+pairs(traffic, panel = panel.smooth)
+cor(traffic)
+
+#There are no clear associations between the response variable (spi) and the predictors 
+#weather and fuel, however there is a weak linear negative link with the predictor road, 
+#a weak negative linear relationship with the predictor transportation, 
+#and a moderate positive linear relationship with the predictor weather.
+
+#The predictors themselves don't appear to be related to one another. 
+
+```
+
+### b) Fit the full model 
+```{r}
+Model1 <- lm(spi ~ transport + road + weather + fuel + wind, data = traffic)
+summary(Model1)
+#Producing 95% conf. interval 
+summary.Model1 <- summary(Model1)
+se <- sqrt(diag(summary.Model1$cov.unscaled * summary.Model1$sigma^2)) [3]
+qt(0.975, 56)
+```
+
+
+$$\hat{\beta}_{\text{weather}} +   t_{(n-p, 1-\alpha/2)} \times \text{se}\times {\hat{\beta}_{\text{weather}}}$$
+
+
+$$\hat{\beta}_{\text{weather}} + t _{(56,0.975)} \times \text{s.e.}\times {\beta_{\text{weather}}}$$
+$= 4.2456 + 2.003241 (0.4473)$
+$= 5.141649699$
+
+$$\hat{\beta}_{\text{weather}} -   t_{(n-p, 1-\alpha/2)} \times \text{se}\times {\hat{\beta}_{\text{weather}}}$$
+
+$$\hat{\beta}_{\text{weather}} - t _{(56,0.975)} \times \text{s.e.}\times {\beta_{\text{weather}}}$$
+
+$= 4.2456 - 2.003241 (0.4473)$
+$= 3.349550301$
+
+Conf. interval -> 5.141649699, 3.349550301
+
+
+Comment - That is, we are 95% confident that for every percentage increase in relative weather, the spi will increase between 
+$3.349550301$ and $5.141649699$ weather severity index on average.
+
+### c) Conducting f-test
+
+Theoretical Model
+
+$$ \gamma_i = B_0 + B_1X_{i1} + B_2X_{i2} + B_3X_{i3} + B_4X_{i4} + \epsilon _i, \quad i = 1,2,\ldots,5 $$
+
+Y is the response variable spi 
+$X_{ij}$ are the predictor variables for the $i$-th observation.
+
+\begin{enumerate}
+\item $X_{i1}$ = annual mean transport of test locations.
+\item $X_{i2}$ = annual mean road of test locations.
+\item $X_{i3}$ = annual mean weather of test locations.
+\item $X_{i4}$ = annual mean fuel of test locations.
+\item $X_{i5}$ = annual mean wind of test locations.
+\end{enumerate}
+
+$\epsilon \sim \mathcal{N}(0, \sigma^2)$ denotes the random variation with constant variance.
+
+
+Conducting F- Test
+
+
+Hypotheses: H0: B1 = B2 = B3 = B4 = B5 = 0 vs H1: Not all Bi = 0, i = 1,2,..5
+
+
+Hypotheses:
+$$H_0: B_1 = B_2 = B_3 = B_4 = B_5 = 0 $$
+$$H_1: \text{Not all } B_i = 0, \text{ where } i = 1,2,\ldots,5$$
+
+```{r}
+
+anova(Model1)
+
+```
+
+
+
+
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+ & Df. & Sum sq. & Mean sq. & F value & Pr(>F) \\
+\hline
+Regression & 5 & 15703.5 & 3140.7 & 31.95015 & 0 \\
+Residuals & 56 & 5502.6 & 98.3 & & \\
+\hline
+\end{tabular}
+
+
+
+
+
+  * Note: Regression SS = 4742.6 + 1992.7 + 8651.9 + 258.1 + 58.2.,
+
+  * Therefore, Mean sq reg = Reg SS/Reg Df = 15703.5/5. 
+ 
+ 
+  * Test statistic: $F_{\text{obs}} = \frac{\text{MS}_{\text{reg}}}{\text{MS}_{\text{Res}}} = \frac{3140.7}{98.3} \approx 31.95015$.
+
+
+* The null distribution for the test statistic is $F_{5,56}$.
+ 
+ 
+* P-value: $P(F_{5,56} \geq 31.95015) = 0$.
+ 
+### d) For the Diagnostics
+```{r}
+
+  par(mfrow = c(3, 2))
+plot(Model1,which = 1:2)
+plot(resid(Model1)~transport, data = traffic, xlab="transport",ylab = "Residuals")
+abline(h=0,lty=2)
+plot(resid(Model1)~road, data = traffic, xlab="road", ylab="Residuals")
+abline(h=0,lty=2)
+plot(resid(Model1)~weather, data = traffic, xlab = "weather", ylab = "Resdiuals")
+abline(h=0,lty=2)
+plot(resid(Model1)~fuel, data = traffic, xlab="fuel", ylab = "Residuals")
+abline(h=0,lty=2)
+plot(resid(Model1)~wind, data = traffic, xlab="wind", ylab = "Residuals")
+abline(h=0,lty=2)
+```
+
+
+*The residuals' quantile plot is roughly linear, indicating that the normalcy 
+assumption for residuals is valid. All of the residual plots show no obvious trend, 
+suggesting that the multiple linear model's constant variance and linearity assumptions are supported. 
+
+  
+### e) Finidng R square 
+```{r}
+
+summary(Model1)
+```
+
+
+
+*Here, the goodness of fit metric is R square, which equals 0.7405 = 74.05%.
+This indicates that the entire linear regression model explains 74.05% of 
+the variation in spi.
+
+
